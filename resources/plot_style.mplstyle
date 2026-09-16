@@ -1,0 +1,26 @@
+# --- Fonts & Text ---
+font.family: serif
+font.size: 10
+axes.labelsize: 10
+axes.titlesize: 10
+xtick.labelsize: 8
+ytick.labelsize: 8
+legend.fontsize: 8
+
+# --- Figure Dimensions & Resolution ---
+# 3.3 inches is roughly standard for a single-column paper figure (width)
+figure.figsize: 3.3, 2.5
+figure.dpi: 300
+savefig.dpi: 300
+savefig.format: pdf
+savefig.bbox: tight
+
+# --- Lines & Axes ---
+lines.linewidth: 1.5
+lines.markersize: 4
+axes.linewidth: 0.8
+xtick.major.width: 0.8
+ytick.major.width: 0.8
+axes.grid: True
+grid.alpha: 0.3
+grid.linestyle: --

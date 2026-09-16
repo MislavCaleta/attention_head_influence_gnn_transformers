@@ -2,7 +2,8 @@ from torch_geometric.datasets import Planetoid, WikipediaNetwork
 from torch_geometric.data import Dataset
 import os
 
-from resources import DATA_PATH, DATASETS
+from src.settings import DATA_PATH
+from src.constants import DATASETS
 
 def get_datasets() -> tuple[Dataset]:
     os.makedirs(DATA_PATH, exist_ok=True)

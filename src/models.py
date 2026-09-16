@@ -1,6 +1,5 @@
 from torch_geometric.nn import TransformerConv
 import torch
-from data_loader import get_datasets
 
 class LocalGraphTransformer(torch.nn.Module):
     def __init__(

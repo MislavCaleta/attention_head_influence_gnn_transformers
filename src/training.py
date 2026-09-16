@@ -2,7 +2,7 @@ import torch
 from torch_geometric.data import Dataset
 from typing import Literal
 
-from resources import INFO_STRINGS
+from src.strings import INFO_STRINGS
 
 def train_model(
     model:  torch.nn.Module,

@@ -1,0 +1,4 @@
+DATASETS = [
+    "Cora",
+    "Chameleon"
+]
