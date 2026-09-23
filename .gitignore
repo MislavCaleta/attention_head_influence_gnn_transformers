@@ -2,3 +2,7 @@ env/
 __pycache__/
 data/
 outputs/
+.*.swp
+.*.swo
+*.swo
+*.swp
