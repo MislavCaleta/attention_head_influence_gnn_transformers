@@ -1,5 +1,9 @@
 from src.training import train_model
+from src.settings import EXPERIMENT_RESULTS_PATH
+
+import os
 import torch
+import json
 from torch_geometric.data import Dataset
 
 def get_experiment_results(
@@ -15,7 +19,7 @@ def get_experiment_results(
                 model_definition(	
                     layers = experiment_config["model"]["num_layers"],
                     attention_heads = attention_heads,
-                    input_channels = datasets[0].x.size()[1],
+                    input_channels = dataset[0].x.size()[1],
                     hidden_channels = experiment_config["model"]["hidden_dim"],
                     classes = dataset.num_classes	
                 )
@@ -50,3 +54,21 @@ def get_experiment_results(
             
             return experiment_information
 
+def run_all_experiments(
+    datasets: tuple[Dataset],
+    model_definitions: list[torch.nn.Module],
+    experiment_config: dict,
+    results_output_file: str
+):  
+    experiment_results_by_seed = dict()
+    for seed in experiment_config["seeds"]:
+        experiment_results = get_experiment_results(
+            datasets,
+            model_definitions,
+            experiment_config
+        )
+        experiment_results_by_seed[seed] = experiment_results
+    
+    os.makedirs(EXPERIMENT_RESULTS_PATH, exist_ok = True)
+    with open(os.path.join(EXPERIMENT_RESULTS_PATH, results_output_file), "w") as f:
+        json.dump(experiment_results_by_seed, f, indent=4)
