@@ -6,7 +6,7 @@ import torch
 import json
 from torch_geometric.data import Dataset
 
-def get_experiment_results(
+def get_training_results(
     datasets: tuple[Dataset],
     model_definitions: list[torch.nn.Module],
     experiment_config: dict
@@ -52,23 +52,25 @@ def get_experiment_results(
                 }
             }
             
-            return experiment_information
+    return experiment_information
 
 def run_all_experiments(
     datasets: tuple[Dataset],
     model_definitions: list[torch.nn.Module],
     experiment_config: dict,
-    results_output_file: str
+    retrain: bool,
+    results_training_file: str
 ):  
-    experiment_results_by_seed = dict()
-    for seed in experiment_config["seeds"]:
-        experiment_results = get_experiment_results(
-            datasets,
-            model_definitions,
-            experiment_config
-        )
-        experiment_results_by_seed[seed] = experiment_results
+    if retrain:
+        training_results_by_seed = dict()
+        for seed in experiment_config["seeds"][:2]:
+            training_results = get_training_results(
+                datasets,
+                model_definitions,
+                experiment_config
+            )
+            training_results_by_seed[seed] = training_results
     
-    os.makedirs(EXPERIMENT_RESULTS_PATH, exist_ok = True)
-    with open(os.path.join(EXPERIMENT_RESULTS_PATH, results_output_file), "w") as f:
-        json.dump(experiment_results_by_seed, f, indent=4)
+        os.makedirs(EXPERIMENT_RESULTS_PATH, exist_ok = True)
+        with open(os.path.join(EXPERIMENT_RESULTS_PATH, results_training_file), "w") as f:
+            json.dump(training_results_by_seed, f, indent=4)

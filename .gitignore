@@ -6,3 +6,4 @@ outputs/
 .*.swo
 *.swo
 *.swp
+.DS_Store
