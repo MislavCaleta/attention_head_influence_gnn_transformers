@@ -1,5 +1,8 @@
 from src.training import train_model
-from src.settings import EXPERIMENT_RESULTS_PATH
+from src.settings import (
+    EXPERIMENT_RESULTS_PATH,
+    ALL_MODELS_PATH
+)
 
 import os
 import torch
@@ -9,7 +12,8 @@ from torch_geometric.data import Dataset
 def get_training_results(
     datasets: tuple[Dataset],
     model_definitions: list[torch.nn.Module],
-    experiment_config: dict
+    experiment_config: dict,
+    current_seed: int
 ) -> dict[str, dict[int, dict]]:
     experiment_information = dict()
     for dataset in datasets:
@@ -41,6 +45,16 @@ def get_training_results(
                 for model in models			
             ]
             
+            os.makedirs(ALL_MODELS_PATH, exist_ok = True)
+            for info in current_training_information:
+                torch.save(
+                    info[0].state_dict(),
+                    os.path.join(
+                        ALL_MODELS_PATH, 
+                        f"{type(info[0]).__name__}_{dataset.name}_{attention_heads}_{current_seed}.pt"
+                    )
+                )
+            
             experiment_information[dataset.name][attention_heads] = {
                 type(current_training_information[0][0]).__name__: {
                     "train_losses": current_training_information[0][1],
@@ -67,7 +81,8 @@ def run_all_experiments(
             training_results = get_training_results(
                 datasets,
                 model_definitions,
-                experiment_config
+                experiment_config,
+                seed
             )
             training_results_by_seed[seed] = training_results
     

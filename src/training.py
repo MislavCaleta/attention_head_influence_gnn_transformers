@@ -46,5 +46,3 @@ def train_model(
         print(INFO_STRINGS["EPOCH_LOSS"].format(train_loss=loss.item(), val_loss=val_loss.item()))
 
     return model, train_losses, val_losses
-
-
