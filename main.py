@@ -14,6 +14,7 @@ run_all_experiments(
         datasets,
         model_definitions,
         experiment_config,
-        True,
-        "training_info.json"
+        False,
+        "training_info.json",
+        "test_info.json"
 )
