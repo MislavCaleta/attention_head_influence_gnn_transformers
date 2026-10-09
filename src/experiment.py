@@ -4,6 +4,7 @@ from src.settings import (
     ALL_MODELS_PATH
 )
 from src.strings import EXCEPTIONS 
+from src.metrics import get_metrics
 
 import os
 import torch
@@ -88,20 +89,24 @@ def test_models(
 
        for name_seed in model_list:
            model_info = torch.load(ALL_MODELS_PATH / name_seed)
+           dataset_used = [dataset for dataset in datasets if dataset.name == model_info["dataset"]][0]
            model_definition = [model_definition for model_definition in model_definitions if model_definition.__name__ == model_info["model_class"]][0]
            model = model_definition(
                layers = experiment_config["model"]["num_layers"], 
                attention_heads = model_info["attention_heads"],
                input_channels = model_info["input_channels"],
                hidden_channels = experiment_config["model"]["hidden_dim"],
-               classes = [dataset for dataset in datasets if dataset.name == model_info["dataset"]][0].num_classes
+               classes = dataset_used.num_classes
            )
            model.load_state_dict(model_info["state_dict"])
 
            name, seed = name_seed.split("-")
            if name not in test_results.keys():
                 test_results[name] = dict()
-           test_results[name][seed] = [0.67, 0.87, 0.54] #implement get metrics function
+           test_results[name][seed] = get_metrics(
+                model,
+                dataset_used
+           )
     else:
         raise FileNotFoundError(
             EXCEPTIONS["NO_MODELS_DIRECTORY"]
