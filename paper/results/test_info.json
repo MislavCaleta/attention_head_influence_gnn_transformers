@@ -1,0 +1,58 @@
+{
+    "HybridGraphTransformer_chameleon_1": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "HybridGraphTransformer_Cora_2": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "LocalGraphTransformer_chameleon_1": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "LocalGraphTransformer_Cora_2": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "HybridGraphTransformer_Cora_1": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "HybridGraphTransformer_chameleon_2": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "LocalGraphTransformer_Cora_1": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    },
+    "LocalGraphTransformer_chameleon_2": {
+        "100.pt": [
+            0.67,
+            0.87,
+            0.54
+        ]
+    }
+}

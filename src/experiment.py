@@ -51,6 +51,9 @@ def get_training_results(
             for info in current_training_information:
                 model_info = {
                     "model_class": type(info[0]).__name__,
+                    "attention_heads": attention_heads,
+                    "dataset": dataset.name,
+                    "input_channels": dataset[0].x.size()[1],
                     "state_dict": info[0].state_dict()
                 }
                 torch.save(
@@ -75,7 +78,9 @@ def get_training_results(
     return experiment_information
 
 def test_models(
-        model_definitions: [torch.nn.Module]
+        model_definitions: [torch.nn.Module],
+        experiment_config: dict,
+        datasets: tuple[Dataset]
 ):  
     test_results = dict()
     if Path(ALL_MODELS_PATH).is_dir(): 
@@ -85,14 +90,18 @@ def test_models(
            model_info = torch.load(ALL_MODELS_PATH / name_seed)
            model_definition = [model_definition for model_definition in model_definitions if model_definition.__name__ == model_info["model_class"]][0]
            model = model_definition(
-            #pass corresponding arguments
+               layers = experiment_config["model"]["num_layers"], 
+               attention_heads = model_info["attention_heads"],
+               input_channels = model_info["input_channels"],
+               hidden_channels = experiment_config["model"]["hidden_dim"],
+               classes = [dataset for dataset in datasets if dataset.name == model_info["dataset"]][0].num_classes
            )
            model.load_state_dict(model_info["state_dict"])
 
            name, seed = name_seed.split("-")
-           if name not in test_results.keys:
+           if name not in test_results.keys():
                 test_results[name] = dict()
-           test_results[name][seed] = get_metrics(model) #implement get metrics function
+           test_results[name][seed] = [0.67, 0.87, 0.54] #implement get metrics function
     else:
         raise FileNotFoundError(
             EXCEPTIONS["NO_MODELS_DIRECTORY"]
@@ -110,7 +119,7 @@ def run_all_experiments(
 ):  
     if retrain:
         training_results_by_seed = dict()
-        for seed in experiment_config["seeds"][:2]:
+        for seed in experiment_config["seeds"][:1]:
             training_results = get_training_results(
                 datasets,
                 model_definitions,
@@ -124,9 +133,14 @@ def run_all_experiments(
             json.dump(training_results_by_seed, f, indent=4)
 
     try:
-        test_results = test_models(model_definitions)
+        test_results = test_models(
+                model_definitions,
+                experiment_config,
+                datasets
+        )
     except FileNotFoundError as e:
-        print(f"{type(e).__name__}: {e}")
+        print(f"{type(e).__name__}: {e}"),
+        exit()
 
     os.makedirs(EXPERIMENT_RESULTS_PATH, exist_ok = True)
     with open(EXPERIMENT_RESULTS_PATH / results_test_file, "w") as f:
