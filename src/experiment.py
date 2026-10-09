@@ -101,6 +101,7 @@ def test_models(
            model.load_state_dict(model_info["state_dict"])
 
            name, seed = name_seed.split("-")
+           seed, __, = seed.split(".")
            if name not in test_results.keys():
                 test_results[name] = dict()
            test_results[name][seed] = get_metrics(
@@ -124,7 +125,7 @@ def run_all_experiments(
 ):  
     if retrain:
         training_results_by_seed = dict()
-        for seed in experiment_config["seeds"][:1]:
+        for seed in experiment_config["seeds"][:3]:
             training_results = get_training_results(
                 datasets,
                 model_definitions,
