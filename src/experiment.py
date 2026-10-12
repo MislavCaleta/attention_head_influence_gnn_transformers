@@ -43,7 +43,8 @@ def get_training_results(
                         lr = experiment_config["training"]["learning_rate"],
                         params = model.parameters()
                     ),
-                    criterion = torch.nn.CrossEntropyLoss()			
+                    criterion = torch.nn.CrossEntropyLoss(),
+                    early_stopping = experiment_config["training"]["early_stopping"]
                 ) 
                 for model in models			
             ]
@@ -59,10 +60,8 @@ def get_training_results(
                 }
                 torch.save(
                     model_info,
-                    os.path.join(
-                        ALL_MODELS_PATH, 
-                        f"{type(info[0]).__name__}_{dataset.name}_{attention_heads}-{current_seed}.pt"
-                    )
+                    ALL_MODELS_PATH /
+                    f"{type(info[0]).__name__}_{dataset.name}_{attention_heads}-{current_seed}.pt"
                 )
             
             experiment_information[dataset.name][attention_heads] = {

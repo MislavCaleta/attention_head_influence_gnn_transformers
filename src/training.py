@@ -1,6 +1,7 @@
 import torch
 from torch_geometric.data import Dataset
 from typing import Literal
+import math
 
 from src.strings import INFO_STRINGS
 
@@ -10,7 +11,8 @@ def train_model(
     epochs: int,
     device: Literal["cpu", "cuda"],
     criterion: torch.nn.CrossEntropyLoss,
-    optimizer: torch.optim.Optimizer
+    optimizer: torch.optim.Optimizer,
+    early_stopping: int | None = None 
 ) -> tuple[torch.nn.Module, list[float]]:
     train_losses = []
     val_losses = []
@@ -26,8 +28,12 @@ def train_model(
         train_mask = data.train_mask
         val_mask = data.val_mask
  
+    best_val_loss = math.inf
+    epochs_not_improved = 0
+    best_model_state = None
+    stop = False
     for epoch in range(epochs):
-        print(INFO_STRINGS["CURRENT_EPOCH"].format(epoch=epoch))
+        print(INFO_STRINGS["CURRENT_EPOCH"].format(epoch=epoch + 1))
         model.train()
         outputs = model(data.x, data.edge_index)
         loss = criterion(outputs[train_mask], data.y[train_mask])
@@ -43,6 +49,20 @@ def train_model(
             val_loss = criterion(outputs[val_mask], data.y[val_mask])
             val_losses.append(val_loss.item())
 
+            if (early_stopping):
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    epochs_not_improved = 0
+                    best_model_state = model.state_dict()
+                elif val_loss >= best_val_loss:
+                    epochs_not_improved += 1
+                    if epochs_not_improved >= early_stopping:
+                        model.load_state_dict(best_model_state)
+                        stop = True
+
         print(INFO_STRINGS["EPOCH_LOSS"].format(train_loss=loss.item(), val_loss=val_loss.item()))
+        if stop:
+            print(INFO_STRINGS["EARLY_STOP"].format(epoch = epoch, early_stopping = early_stopping))
+            break
 
     return model, train_losses, val_losses
