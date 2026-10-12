@@ -12,6 +12,10 @@ import json
 from torch_geometric.data import Dataset
 from pathlib import Path
 
+def set_seed(seed: int):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
 def get_training_results(
     datasets: tuple[Dataset],
     model_definitions: list[torch.nn.Module],
@@ -125,6 +129,7 @@ def run_all_experiments(
     if retrain:
         training_results_by_seed = dict()
         for seed in experiment_config["seeds"][:3]:
+            set_seed(seed)
             training_results = get_training_results(
                 datasets,
                 model_definitions,
