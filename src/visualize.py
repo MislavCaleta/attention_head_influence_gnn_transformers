@@ -2,14 +2,16 @@ import matplotlib.pyplot as plt
 import os
 from torch_geometric.utils import homophily
 from torch_geometric.data import Dataset
+import json
+import numpy as np
 
-from src.settings import WORKING_FIGURES_PATH, PLOT_STYLE_PATH
+from src.settings import WORKING_FIGURES_PATH, PLOT_STYLE_PATH, EXPERIMENT_RESULTS_PATH 
 
 plt.style.use(PLOT_STYLE_PATH)
 
 def visualize_loss(
-        loss_info: dict[str, list[float]],
-        output_figure_name: str
+    loss_info: dict[str, list[float]],
+    output_figure_name: str
 ):
     fig, ax = plt.subplots()
     for key, value in loss_info.items():
@@ -21,7 +23,7 @@ def visualize_loss(
     fig.savefig(os.path.join(WORKING_FIGURES_PATH, output_figure_name))
 
 def collect_homophily(
-        datasets: list[Dataset]
+    datasets: list[Dataset]
 ) -> list[float]:
     homophily_measures = []
 
@@ -37,8 +39,8 @@ def collect_homophily(
     return homophily_measures
 
 def visualize_homophily(
-        datasets: list[Dataset],
-        output_figure_name: str
+    datasets: list[Dataset],
+    output_figure_name: str
 ):
     homophilies = collect_homophily(datasets)
     dataset_names = [dataset.name for dataset in datasets]
@@ -54,3 +56,57 @@ def visualize_homophily(
     ax.bar_label(bars)
     os.makedirs(WORKING_FIGURES_PATH, exist_ok=True)
     fig.savefig(fname=os.path.join(WORKING_FIGURES_PATH, output_figure_name))
+
+def create_final_figure(
+    dataset_results: dict,
+    figure_name: str,
+    metric: int,
+    bar_width: float = 0.35
+):  
+    fig, ax = plt.subplots()
+    for i, (model_name, results) in enumerate(dataset_results.items()):
+        results_by_head = []
+        std_by_head = []
+        heads = []
+        for result in results:
+            results_by_head.append(result[0][0][metric])
+            std_by_head.append(result[0][1][metric])
+            heads.append(result[1])
+        offset = (i - 0.5) * bar_width
+        ax.bar(np.array(heads) + offset, results_by_head, bar_width, label=model_name)
+    
+    ax.set_xlabel("Number of Attention Heads")
+    ax.set_ylabel("Score")
+    ax.set_xticks(heads)
+    ax.legend()
+
+    fig.savefig(fname=EXPERIMENT_RESULTS_PATH / figure_name)
+
+def create_final_figures(
+    final_results_file: str
+):
+    with open(EXPERIMENT_RESULTS_PATH / final_results_file) as f:
+        final_results = json.load(f)
+    
+    per_dataset = {}
+    for key, value in final_results.items():
+        model, dataset_name, heads = key.split("_")
+        if dataset_name not in per_dataset.keys():
+            per_dataset[dataset_name] = dict()
+        if model not in per_dataset[dataset_name].keys():
+            per_dataset[dataset_name][model] = []
+        per_dataset[dataset_name][model].append([value, int(heads)])
+
+    for model_dict in per_dataset.values():
+        for model_name, results_list in model_dict.items():
+            # this sorts the results by heads
+            model_dict[model_name].sort(key=lambda x: x[1])
+    
+    create_final_figure(
+        per_dataset["chameleon"],
+        "test.png",
+        0
+    )
+
+
+
