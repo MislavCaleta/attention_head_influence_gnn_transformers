@@ -25,7 +25,7 @@ def get_training_results(
     experiment_information = dict()
     for dataset in datasets:
         experiment_information[dataset.name] = dict()
-        for attention_heads in experiment_config["model"]["num_attention_heads"][:2]:
+        for attention_heads in experiment_config["model"]["num_attention_heads"]:
             models = [
                 model_definition(	
                     layers = experiment_config["model"]["num_layers"],
@@ -128,7 +128,7 @@ def run_all_experiments(
 ):  
     if retrain:
         training_results_by_seed = dict()
-        for seed in experiment_config["seeds"][:3]:
+        for seed in experiment_config["seeds"]:
             set_seed(seed)
             training_results = get_training_results(
                 datasets,

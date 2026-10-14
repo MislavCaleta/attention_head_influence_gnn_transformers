@@ -5,7 +5,7 @@ from torch_geometric.data import Dataset
 import json
 import numpy as np
 
-from src.settings import WORKING_FIGURES_PATH, PLOT_STYLE_PATH, EXPERIMENT_RESULTS_PATH 
+from src.settings import WORKING_FIGURES_PATH, PLOT_STYLE_PATH, EXPERIMENT_RESULTS_PATH, EXPERIMENT_FIGURES_PATH 
 
 plt.style.use(PLOT_STYLE_PATH)
 
@@ -60,7 +60,8 @@ def visualize_homophily(
 def create_final_figure(
     dataset_results: dict,
     figure_name: str,
-    metric: int,
+    metric_index: int,
+    metric_name: str,
     bar_width: float = 0.35
 ):  
     fig, ax = plt.subplots()
@@ -69,21 +70,23 @@ def create_final_figure(
         std_by_head = []
         heads = []
         for result in results:
-            results_by_head.append(result[0][0][metric])
-            std_by_head.append(result[0][1][metric])
+            results_by_head.append(result[0][0][metric_index])
+            std_by_head.append(result[0][1][metric_index])
             heads.append(result[1])
         offset = (i - 0.5) * bar_width
         ax.bar(np.array(heads) + offset, results_by_head, bar_width, label=model_name)
     
     ax.set_xlabel("Number of Attention Heads")
-    ax.set_ylabel("Score")
+    ax.set_ylabel(f"Score: {metric_name}")
     ax.set_xticks(heads)
     ax.legend()
-
-    fig.savefig(fname=EXPERIMENT_RESULTS_PATH / figure_name)
+    
+    os.makedirs(EXPERIMENT_FIGURES_PATH, exist_ok=True)
+    fig.savefig(fname=EXPERIMENT_FIGURES_PATH / figure_name)
 
 def create_final_figures(
-    final_results_file: str
+    final_results_file: str,
+    experiment_config: dict
 ):
     with open(EXPERIMENT_RESULTS_PATH / final_results_file) as f:
         final_results = json.load(f)
@@ -101,12 +104,13 @@ def create_final_figures(
         for model_name, results_list in model_dict.items():
             # this sorts the results by heads
             model_dict[model_name].sort(key=lambda x: x[1])
-    
-    create_final_figure(
-        per_dataset["chameleon"],
-        "test.png",
-        0
-    )
 
-
-
+    metrics_dict = experiment_config["metrics"]
+    for metric_name, metric_index in metrics_dict.items():
+        for dataset_name, model_results in per_dataset.items():
+            create_final_figure(
+                model_results,
+                f"results_{dataset_name}_{metric_name}.png",
+                metric_index,
+                metric_name
+            )

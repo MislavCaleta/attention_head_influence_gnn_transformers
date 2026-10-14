@@ -36,13 +36,14 @@ def main(
 
     if final_figures:
         create_final_figures(
-            "final_results.json" 
+            "final_results.json",
+            experiment_config
         )
 
 if __name__ == "__main__":
     main(
-        train = False,
-        test = False,
-        final_results = False,
+        train = True,
+        test = True,
+        final_results = True,
         final_figures = True
     )
