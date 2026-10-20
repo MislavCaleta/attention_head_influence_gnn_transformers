@@ -4,6 +4,7 @@ from src.settings import DEVICE, EXPERIMENT_CONFIG_PATH
 from src.experiment import run_all_experiments
 from src.final_results import calculate_final_results
 from src.visualize import create_final_figures
+from src.significance import run_transformer_anova
 
 import yaml
 
@@ -11,8 +12,10 @@ def main(
     train: bool = True,
     test: bool = True,
     final_results: bool = True,
-    final_figures: bool = True
+    final_figures: bool = True,
+    significance: bool = True
 ):
+
     with open(EXPERIMENT_CONFIG_PATH, "r") as f:
         experiment_config = yaml.safe_load(f)
     datasets = get_datasets()
@@ -40,10 +43,16 @@ def main(
             experiment_config
         )
 
+    if significance:
+        run_transformer_anova(
+            "final_results.json"
+        )
+
 if __name__ == "__main__":
     main(
         train = True,
         test = True,
         final_results = True,
-        final_figures = True
+        final_figures = True,
+        significance = True
     )

@@ -1,7 +1,10 @@
 from pathlib import Path
 import torch
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device(
+        "cuda" if torch.cuda.is_available()
+        else ("mps" if torch.backends.mps.is_available() else "cpu")
+        )
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 WORKING_FIGURES_PATH = ROOT_DIR / "outputs" / "figures"
