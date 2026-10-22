@@ -74,7 +74,7 @@ def create_final_figure(
             std_by_head.append(result[0][1][metric_index])
             heads.append(result[1])
         offset = (i - 0.5) * bar_width
-        ax.bar(np.array(heads) + offset, results_by_head, bar_width, label=model_name, yerr=std_by_head, capsize=4)
+        ax.bar(np.array(heads) + offset, results_by_head, bar_width, label=model_name, yerr=std_by_head, capsize=1, error_kw={"elinewidth": 0.25, "capthick": 0.15})
     
     ax.set_xlabel("Number of Attention Heads")
     ax.set_ylabel(f"Score: {metric_name}")
