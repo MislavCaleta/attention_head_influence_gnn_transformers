@@ -28,7 +28,7 @@ class LocalGraphTransformer(torch.nn.Module):
             if layer_number == layers - 1:
                 self.layer_list.append(
                     TransformerConv(
-                        in_channels=hidden_channels * attention_heads,
+                        in_channels=hidden_channels,
                         out_channels=hidden_channels,
                         heads=attention_heads,
                         concat=False
@@ -39,7 +39,7 @@ class LocalGraphTransformer(torch.nn.Module):
 
             self.layer_list.append(
                 TransformerConv(
-                    in_channels=hidden_channels * attention_heads,
+                    in_channels=hidden_channels,
                     out_channels=self.head_dim,
                     heads=attention_heads,
                     concat=True
@@ -78,38 +78,39 @@ class HybridGraphTransformer(torch.nn.Module):
         self.layer_list = []
         self.gn_mlp_list = []
         self.last_layer = False
+        self.head_dim = hidden_channels // attention_heads
         self.transformer_input = input_channels
-        self.mlp_input = attention_heads * hidden_channels + input_channels
+        self.mlp_input = hidden_channels + input_channels
 
         for layer in range(layers):
             if layer == layers - 1:
                 self.last_layer = True
-                self.mlp_input = hidden_channels + attention_heads * hidden_channels
+
 
             self.layer_list.append(
                 TransformerConv(
                     in_channels=self.transformer_input,
-                    out_channels=hidden_channels,
+                    out_channels=hidden_channels if self.last_layer else self.head_dim,
                     heads=attention_heads,
                     concat=not(self.last_layer)
                 )
             )
-            self.transformer_input = attention_heads * hidden_channels
+            self.transformer_input = hidden_channels
 
             self.gn_mlp_list.append(
                 torch.nn.Sequential(
                     torch.nn.Linear(
                         in_features=self.mlp_input,
-                        out_features = hidden_channels if self.last_layer else self.transformer_input
+                        out_features = hidden_channels
                     ),
                     torch.nn.LeakyReLU(),
                     torch.nn.Linear(
-                        in_features = hidden_channels if self.last_layer else self.transformer_input,
-                        out_features = hidden_channels if self.last_layer else self.transformer_input
+                        in_features = hidden_channels,
+                        out_features = hidden_channels,
                     )
                 )
             )
-            self.mlp_input = (attention_heads * hidden_channels) * 2
+            self.mlp_input = 2 * hidden_channels
 
         self.layers = torch.nn.ModuleList(self.layer_list)
         self.gn_mlps = torch.nn.ModuleList(self.gn_mlp_list)
@@ -131,7 +132,7 @@ class HybridGraphTransformer(torch.nn.Module):
                 dim=0,
                 keepdim=True
             )
-            current_gn_state = gn_mlp(torch.concat([current_gn_state, global_pool], dim=1))
+            current_gn_state = gn_mlp(torch.cat([current_gn_state, global_pool], dim=1))
         x += current_gn_state
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.output_layer(x)
