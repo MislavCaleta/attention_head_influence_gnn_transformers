@@ -3,7 +3,7 @@ seeds: [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 model:
   hidden_dim: 64
   num_layers: 3
-  num_attention_heads: [1, 2, 4, 8, 16, 18, 32]
+  num_attention_heads: [1, 2, 4, 8, 16, 32]
 
 training:
   learning_rate: 0.001
