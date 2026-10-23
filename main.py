@@ -50,9 +50,9 @@ def main(
 
 if __name__ == "__main__":
     main(
-        train = False,
-        test = False,
-        final_results = False,
+        train = True,
+        test = True,
+        final_results = True,
         final_figures = True,
         significance = True
     )

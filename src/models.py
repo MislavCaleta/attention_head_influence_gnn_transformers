@@ -1,5 +1,6 @@
 from torch_geometric.nn import TransformerConv
 import torch
+import torch.nn.functional as F
 
 class LocalGraphTransformer(torch.nn.Module):
     def __init__(
@@ -13,11 +14,12 @@ class LocalGraphTransformer(torch.nn.Module):
         super().__init__()
         self.leaky_relu = torch.nn.LeakyReLU()
         self.layer_list = []
+        self.head_dim = hidden_channels // attention_heads
 
         self.layer_list.append(
             TransformerConv(
                 in_channels=input_channels,
-                out_channels=hidden_channels,
+                out_channels=self.head_dim,
                 heads=attention_heads,
                 concat=True
             )
@@ -38,7 +40,7 @@ class LocalGraphTransformer(torch.nn.Module):
             self.layer_list.append(
                 TransformerConv(
                     in_channels=hidden_channels * attention_heads,
-                    out_channels=hidden_channels,
+                    out_channels=self.head_dim,
                     heads=attention_heads,
                     concat=True
                 )
@@ -53,9 +55,11 @@ class LocalGraphTransformer(torch.nn.Module):
 
     def forward(self, x, edge_index):
         for layer in self.layers:
+            x = F.dropout(x, p=0.5, training=self.training)
             x = layer(x, edge_index)
             x = self.leaky_relu(x)
-
+        
+        x = F.dropout(x, p=0.5, training=self.training)
         x = self.output_layer(x)
         return x
 
@@ -119,7 +123,9 @@ class HybridGraphTransformer(torch.nn.Module):
 
         for layer, gn_mlp in zip(self.layers, self.gn_mlps):
             x += current_gn_state
+            x = F.dropout(x, p=0.5, training=self.training)
             x = layer(x, edge_index)
+            x = self.leaky_relu(x)
             global_pool = torch.mean(
                 input=x,
                 dim=0,
@@ -127,5 +133,6 @@ class HybridGraphTransformer(torch.nn.Module):
             )
             current_gn_state = gn_mlp(torch.concat([current_gn_state, global_pool], dim=1))
         x += current_gn_state
+        x = F.dropout(x, p=0.5, training=self.training)
         x = self.output_layer(x)
         return x

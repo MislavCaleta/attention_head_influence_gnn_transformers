@@ -2,6 +2,7 @@ import torch
 from torch_geometric.data import Dataset
 from typing import Literal
 import math
+import copy
 
 from src.strings import INFO_STRINGS
 
@@ -46,23 +47,26 @@ def train_model(
 
         model.eval()
         with torch.no_grad():
-            val_loss = criterion(outputs[val_mask], data.y[val_mask])
+            val_outputs = model(data.x, data.edge_index)
+            val_loss = criterion(val_outputs[val_mask], data.y[val_mask])
             val_losses.append(val_loss.item())
 
             if (early_stopping):
                 if val_loss < best_val_loss:
                     best_val_loss = val_loss
                     epochs_not_improved = 0
-                    best_model_state = model.state_dict()
+                    best_model_state = copy.deepcopy(model.state_dict())
                 elif val_loss >= best_val_loss:
                     epochs_not_improved += 1
                     if epochs_not_improved >= early_stopping:
-                        model.load_state_dict(best_model_state)
                         stop = True
 
         print(INFO_STRINGS["EPOCH_LOSS"].format(train_loss=loss.item(), val_loss=val_loss.item()))
         if stop:
             print(INFO_STRINGS["EARLY_STOP"].format(epoch = epoch, early_stopping = early_stopping))
             break
+
+    if early_stopping and best_model_state is not None:
+        model.load_state_dict(best_model_state)
 
     return model, train_losses, val_losses
